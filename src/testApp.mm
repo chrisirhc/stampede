@@ -66,10 +66,11 @@ void testApp::update(){
 void testApp::draw(){	
 	
 	ofSetColor(0xFFFFFF);
-	grabber.draw(0, 0);
+	tex.draw(0, 0);
+	grabber.draw(camWidth, camHeight);
 	
-	tex.draw(0, 0, tex.getWidth() / 4, tex.getHeight() / 4);
-	ofRect(startCoord[0], startCoord[1], 50, 50);
+	// tex.draw(0, 0, tex.getWidth() / 4, tex.getHeight() / 4);
+	ofRect(startCoord[0] + camWidth, startCoord[1] + camHeight, 50, 50);
 }
 
 //--------------------------------------------------------------
@@ -83,8 +84,8 @@ void testApp::touchDown(int x, int y, int id){
 void testApp::touchMoved(int x, int y, int id){
 	int brushSize = 50, fx = firstX[id], fy = firstY[id];
 	if(fingerOrder.front() == id) {
-		startCoord[0] = x;
-		startCoord[1] = y;
+		startCoord[0] = x - camWidth;
+		startCoord[1] = y - camHeight;
 	} else {
 		for(int i = 0; i < brushSize; i++) {
 			for(int j = 0; j < brushSize; j++) {
