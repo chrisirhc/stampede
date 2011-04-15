@@ -89,11 +89,13 @@ void testApp::touchMoved(int x, int y, int id){
 	} else {
 		for(int i = 0; i < brushSize; i++) {
 			for(int j = 0; j < brushSize; j++) {
-				if (((x - fx + j + startCoord[1]) > 0) && ((y - fy + i + startCoord[0]) > 0) &&
+				if (((x - fx + j + startCoord[0]) > 0) &&
+						((y - fy + i + startCoord[1]) > 0) &&
 						((x + j) < camWidth) && ((y + i) < camHeight) &&
-						((x + j - fx + startCoord[1]) < camWidth) && ((y + i - fy + startCoord[0]) < camHeight)) {
-					videoCoordinates[2*((y+i)*camWidth + (x+j))+1] = x + j - fx + startCoord[1];
-					videoCoordinates[2*((y+i)*camWidth + (x+j))]   = y + i - fy + startCoord[0];
+						((x + j - fx + startCoord[0]) < camWidth) &&
+						((y + i - fy + startCoord[1]) < camHeight)) {
+					videoCoordinates[2*((y+i)*camWidth + (x+j))+1] = x + j - fx + startCoord[0];
+					videoCoordinates[2*((y+i)*camWidth + (x+j))]   = y + i - fy + startCoord[1];
 				}
 			}
 		}
