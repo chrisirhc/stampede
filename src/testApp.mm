@@ -124,18 +124,29 @@ void testApp::touchDown(int x, int y, int id){
 		firstX[id] = x;
 		firstY[id] = y;
 
+		int startX = startCoord[0];
+		int startY = startCoord[1];
+
+		if (startX == -1) {
+			startX = x;
+			startY = y;
+		}
+
 		for(int i = 0; i < brushSize; i++) {
 			for(int j = 0; j < brushSize; j++) {
-				if (((j + startCoord[0]) >= 0) &&
-						((i + startCoord[1]) >= 0) &&
+				if (((j + startX) >= 0) &&
+						((i + startY) >= 0) &&
 						((x + j) < camWidth) && ((y + i) < camHeight) &&
-						((j + startCoord[0]) < camWidth) &&
-						((i + startCoord[1]) < camHeight)) {
-					videoCoordinates[2*((y+i)*camWidth + (x+j))+1] = j + startCoord[0];
-					videoCoordinates[2*((y+i)*camWidth + (x+j))]   = i + startCoord[1];
+						((j + startX) < camWidth) &&
+						((i + startY) < camHeight)) {
+					videoCoordinates[2*((y+i)*camWidth + (x+j))+1] = j + startX;
+					videoCoordinates[2*((y+i)*camWidth + (x+j))]   = i + startY;
 				}
 			}
 		}
+	} else if (fingerOrder.front() == id) {
+		// For the eraser option
+		startCoord[0] = -1;
 	}
 }
 
@@ -151,15 +162,23 @@ void testApp::touchMoved(int x, int y, int id){
 		x -= camWidth + 64;
 		y -= camHeight;
 
+		int startX = startCoord[0];
+		int startY = startCoord[1];
+
+		if (startX == -1) {
+			startX = fx;
+			startY = fy;
+		}
+
 		for(int i = 0; i < brushSize; i++) {
 			for(int j = 0; j < brushSize; j++) {
-				if (((x - fx + j + startCoord[0]) >= 0) &&
-						((y - fy + i + startCoord[1]) >= 0) &&
+				if (((x - fx + j + startX) >= 0) &&
+						((y - fy + i + startY) >= 0) &&
 						((x + j) < camWidth) && ((y + i) < camHeight) &&
-						((x + j - fx + startCoord[0]) < camWidth) &&
-						((y + i - fy + startCoord[1]) < camHeight)) {
-					videoCoordinates[2*((y+i)*camWidth + (x+j))+1] = x + j - fx + startCoord[0];
-					videoCoordinates[2*((y+i)*camWidth + (x+j))]   = y + i - fy + startCoord[1];
+						((x + j - fx + startX) < camWidth) &&
+						((y + i - fy + startY) < camHeight)) {
+					videoCoordinates[2*((y+i)*camWidth + (x+j))+1] = x + j - fx + startX;
+					videoCoordinates[2*((y+i)*camWidth + (x+j))]   = y + i - fy + startY;
 				}
 			}
 		}
