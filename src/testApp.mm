@@ -67,21 +67,22 @@ void testApp::update(){
 	
 	int currentIndex;
 
-	// TODO this preview should be based on the currentSamplingFrame variable
 	/** Generate preview texture for sampling area **/
-	for(int i = 0, k = 0; i < brushSize; i++) {
-		for(int j = 0; j < brushSize; j++, k+=3) {
-			if (((startCoord[0] + i) < camWidth) && ((startCoord[1] + j) < camHeight)) {
-				currentIndex = 3*((startCoord[1]+i)*camWidth + startCoord[0]+j);
-				prevPix[k]   = frameOrder[currentSamplingFrame][currentIndex];
-				prevPix[k+1] = frameOrder[currentSamplingFrame][currentIndex+1];
-				prevPix[k+2] = frameOrder[currentSamplingFrame][currentIndex+2];
+	if (startCoord[0] != -1) {
+		for(int i = 0, k = 0; i < brushSize; i++) {
+			for(int j = 0; j < brushSize; j++, k+=3) {
+				if (((startCoord[0] + i) < camWidth) && ((startCoord[1] + j) < camHeight)) {
+					currentIndex = 3*((startCoord[1]+i)*camWidth + startCoord[0]+j);
+					prevPix[k]   = frameOrder[currentSamplingFrame][currentIndex];
+					prevPix[k+1] = frameOrder[currentSamplingFrame][currentIndex+1];
+					prevPix[k+2] = frameOrder[currentSamplingFrame][currentIndex+2];
+				}
 			}
 		}
+		/**  Load preview texture into the texture **/
+		previewTex.loadData(prevPix, brushSize, brushSize, GL_RGB);
 	}
 
-	/**  Load preview texture into the texture **/
-	previewTex.loadData(prevPix, brushSize, brushSize, GL_RGB);
 
 	int totalPixels = camWidth*camHeight*3;
 	int coordinates = camWidth*camHeight*3;
@@ -111,10 +112,10 @@ void testApp::draw(){
 	// Sampling frame
 	sampTex.draw(0, camHeight);
 
-	previewTex.draw(camWidth / 2 - 50/2, 0.5 * camHeight - 50/2);
-	
 	// If it's not in the eraser mode, then draw a nice rectangle of the sampling area
 	if (startCoord[0] != -1) {
+		previewTex.draw(camWidth / 2 - 50/2, 0.5 * camHeight - 50/2);
+
 		ofEnableAlphaBlending();
 		ofNoFill();
 		ofSetColor(255, 255, 255, 100);
