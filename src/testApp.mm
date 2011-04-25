@@ -85,12 +85,10 @@ void testApp::update(){
 
 	int totalPixels = camWidth*camHeight*3;
 	int coordinates = camWidth*camHeight*3;
-	for (int i = 0, j = 0; i < coordinates; i+=3, j+=3) {
+	for (int i = 0; i < coordinates; i+=3) {
 		// TODO Check later and optimize
 		currentIndex = 3*(videoCoordinates[i]*camWidth + videoCoordinates[i+1]);
-		pix[j]   = frameOrder[videoCoordinates[i+2]][currentIndex];
-		pix[j+1] = frameOrder[videoCoordinates[i+2]][currentIndex+1];
-		pix[j+2] = frameOrder[videoCoordinates[i+2]][currentIndex+2];
+		memcpy(pix+i, frameOrder[videoCoordinates[i+2]]+currentIndex, 3);
 	}
 
 	tex.loadData(pix, grabber.getWidth(), grabber.getHeight(), GL_RGB);
