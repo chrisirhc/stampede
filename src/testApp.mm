@@ -9,6 +9,8 @@ void testApp::setup(){
 	camWidth = 480;
 	camHeight = 360;
 
+	brushSize = 50;
+
 	// register touch events
 	// ofRegisterTouchEvents(this);
   ofxRegisterMultitouch(this);
@@ -16,8 +18,10 @@ void testApp::setup(){
 	grabber.initGrabber(camWidth, camHeight);
 	// TODO not sure why this gets set of widths and heights
 	tex.allocate(grabber.getWidth(), grabber.getHeight(), GL_RGB);
+	previewTex.allocate(brushSize, brushSize, GL_RGB);
 	
 	pix = new unsigned char[ (int)( grabber.getWidth() * grabber.getHeight() * 3.0)];
+	prevPix = new unsigned char[ (int)( brushSize * brushSize * 3.0)];
 
 	videoCoordinates = new int[camWidth*camHeight*2];
 	int i = 0;
@@ -34,7 +38,7 @@ void testApp::setup(){
 
 //--------------------------------------------------------------
 void testApp::update(){
-	ofBackground(255,255,255);		
+	ofBackground(0,0,0);
 	
 	unsigned char * src = grabber.getPixels();
 	
@@ -47,8 +51,23 @@ void testApp::update(){
 		pix[k+2] = 255 - src[k+2];		
 	}
 */
-
 	int currentIndex;
+
+	/** Generate preview texture for sampling area **/
+	for(int i = 0, k = 0; i < brushSize; i++) {
+		for(int j = 0; j < brushSize; j++, k+=3) {
+			if (((startCoord[0] + i) < camWidth) && ((startCoord[1] + j) < camHeight)) {
+				currentIndex = 3*((startCoord[1]+i)*camWidth + startCoord[0]+j);
+				prevPix[k]   = src[currentIndex];
+				prevPix[k+1] = src[currentIndex+1];
+				prevPix[k+2] = src[currentIndex+2];
+			}
+		}
+	}
+
+	/**  Load preview texture into the texture **/
+	previewTex.loadData(prevPix, brushSize, brushSize, GL_RGB);
+
 	int totalPixels = camWidth*camHeight*3;
 	int coordinates = camWidth*camHeight*2;
 	for (int i = 0, j = 0; i < coordinates; i+=2, j+=3) {
@@ -64,10 +83,13 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){	
+  ofScale(1.0, 1.0, 1.0);
 	
 	ofSetColor(0xFFFFFF);
 	tex.draw(0, 0);
 	grabber.draw(camWidth, camHeight);
+
+	previewTex.draw(camWidth / 2, 1.5 * camHeight);
 	
 	// tex.draw(0, 0, tex.getWidth() / 4, tex.getHeight() / 4);
 	ofRect(startCoord[0] + camWidth, startCoord[1] + camHeight, 50, 50);
@@ -78,19 +100,36 @@ void testApp::touchDown(int x, int y, int id){
 	fingerOrder.push_back(id);
 	firstX[id] = x;
 	firstY[id] = y;
-}
-
-//--------------------------------------------------------------
-void testApp::touchMoved(int x, int y, int id){
-	int brushSize = 50, fx = firstX[id], fy = firstY[id];
 	if(fingerOrder.front() == id) {
 		startCoord[0] = x - camWidth;
 		startCoord[1] = y - camHeight;
 	} else {
 		for(int i = 0; i < brushSize; i++) {
 			for(int j = 0; j < brushSize; j++) {
-				if (((x - fx + j + startCoord[0]) > 0) &&
-						((y - fy + i + startCoord[1]) > 0) &&
+				if (((j + startCoord[0]) >= 0) &&
+						((i + startCoord[1]) >= 0) &&
+						((x + j) < camWidth) && ((y + i) < camHeight) &&
+						((j + startCoord[0]) < camWidth) &&
+						((i + startCoord[1]) < camHeight)) {
+					videoCoordinates[2*((y+i)*camWidth + (x+j))+1] = j + startCoord[0];
+					videoCoordinates[2*((y+i)*camWidth + (x+j))]   = i + startCoord[1];
+				}
+			}
+		}
+	}
+}
+
+//--------------------------------------------------------------
+void testApp::touchMoved(int x, int y, int id){
+	int fx = firstX[id], fy = firstY[id];
+	if(fingerOrder.front() == id) {
+		startCoord[0] = x - camWidth;
+		startCoord[1] = y - camHeight;
+	} else {
+		for(int i = 0; i < brushSize; i++) {
+			for(int j = 0; j < brushSize; j++) {
+				if (((x - fx + j + startCoord[0]) >= 0) &&
+						((y - fy + i + startCoord[1]) >= 0) &&
 						((x + j) < camWidth) && ((y + i) < camHeight) &&
 						((x + j - fx + startCoord[0]) < camWidth) &&
 						((y + i - fy + startCoord[1]) < camHeight)) {

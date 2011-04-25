@@ -23,7 +23,9 @@ class testApp : public ofxiPhoneApp{
 		
 		ofxiPhoneVideoGrabber grabber;
 		ofTexture tex;
+		ofTexture previewTex;
 		unsigned char * pix;
+		unsigned char * prevPix;
 
 		int camWidth, camHeight;
 		int * videoCoordinates;
@@ -33,4 +35,6 @@ class testApp : public ofxiPhoneApp{
 		std::map<int, float> firstX;
 		std::map<int, float> firstY;
 		std::list<int> fingerOrder;
+
+		int brushSize;
 };
