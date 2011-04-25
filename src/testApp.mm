@@ -41,6 +41,16 @@ void testApp::setup(){
 
 	startCoord[0] = 0;
 	startCoord[1] = 0;
+
+	// Load the points in the timeline
+	int margin = 0.5 / NUM_FRAMES * camWidth;
+	for (int i = 0; i < NUM_FRAMES; i++) {
+		timelineVertices[i][0] = ofMap(i, 0, NUM_FRAMES-1, margin, camWidth - margin);
+		timelineVertices[i][1] = 2*camHeight + 7;
+		timelineVertices[NUM_FRAMES + i][0] = ofMap(i, 0, NUM_FRAMES-1, margin, camWidth - margin);
+		timelineVertices[NUM_FRAMES + i][1] = camHeight - 7;
+	}
+	glPointSize(1.0f);
 }
 
 //--------------------------------------------------------------
@@ -115,9 +125,22 @@ void testApp::draw(){
 		ofRect(startCoord[0] - 1, startCoord[1] + camHeight - 1, 52, 52);
 		ofDisableAlphaBlending();
 	}
+
+	ofSetColor(255, 255, 255);
+	int margin = 0.5 / NUM_FRAMES * camWidth;
+	float x = ofMap(currentSamplingFrame, 0, NUM_FRAMES-1, margin, camWidth - margin);
+	ofLine(x, 2*camHeight, x, 2*camHeight + 15);
+	ofLine(x, camHeight, x, camHeight - 15);
+	ofSetColor(200, 200, 200);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 0, timelineVertices);
+	glDrawArrays(GL_POINTS, 0, NUM_FRAMES * 2);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-#define WITHINSAMPLEREGION(x, y) (((x) < camWidth) && ((y) > camHeight))
+#define WITHINSAMPLEREGION(x, y) (((x) < camWidth) && ((y) > camHeight) && ((y) < 2 * camHeight))
+#define WITHINFRAMESELECTREGION(x, y) (((x) < camWidth) && ((y) > 2 * camHeight))
 #define WITHINAPPLYREGION(x, y) (((x) > camWidth + 64) && ((y) > camHeight))
 // #define CONVERT_FROM_APPLY(x, y) (
 
@@ -158,6 +181,8 @@ void testApp::touchDown(int x, int y, int id){
 				}
 			}
 		}
+	} else if (WITHINFRAMESELECTREGION(x, y)) {
+		currentSamplingFrame = (int) ofMap(x, 0, camWidth, 0, NUM_FRAMES);
 	} else if (fingerOrder.front() == id) {
 		// For the eraser option
 		startCoord[0] = -1;
@@ -196,6 +221,8 @@ void testApp::touchMoved(int x, int y, int id){
 				}
 			}
 		}
+	} else if (WITHINFRAMESELECTREGION(x, y)) {
+		currentSamplingFrame = (int) ofMap(x, 0, camWidth, 0, NUM_FRAMES);
 	}
 }
 

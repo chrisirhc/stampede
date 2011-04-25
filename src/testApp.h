@@ -44,4 +44,6 @@ class testApp : public ofxiPhoneApp{
 		int currentSamplingFrame;
 		std::deque<int> frameOrder;
 		ofTexture frameTex[NUM_FRAMES];
+
+		GLfloat timelineVertices[NUM_FRAMES * 2][2];
 };
