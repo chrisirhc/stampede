@@ -10,6 +10,8 @@
 #include <deque>
 
 #define NUM_FRAMES 50
+#define MODE_EDIT 0
+#define MODE_FULLSCREEN 1
 
 class testApp : public ofxiPhoneApp{
 	
@@ -47,4 +49,6 @@ class testApp : public ofxiPhoneApp{
 		unsigned char * frameTex[NUM_FRAMES];
 
 		GLfloat timelineVertices[NUM_FRAMES * 2][2];
+
+		int viewMode;
 };

@@ -11,6 +11,8 @@ void testApp::setup(){
 
 	brushSize = 50;
 
+	viewMode = MODE_EDIT;
+
 	// Set the currentSamplingFrame to the latest frame available (starts from 0)
 	currentSamplingFrame = NUM_FRAMES - 1;
 
@@ -107,6 +109,8 @@ void testApp::draw(){
   ofScale(1.0, 1.0, 1.0);
 	
 	ofSetColor(0xFFFFFF);
+
+	if (viewMode != MODE_FULLSCREEN) {
 	// Live camera with applied effect
 	tex.draw(camWidth + 64, camHeight);
 	// Sampling frame
@@ -136,6 +140,9 @@ void testApp::draw(){
 	glVertexPointer(2, GL_FLOAT, 0, timelineVertices);
 	glDrawArrays(GL_POINTS, 0, NUM_FRAMES * 2);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	} else {
+		tex.draw(0, 0, 1024, 768);
+	}
 }
 
 #define WITHINSAMPLEREGION(x, y) (((x) < camWidth) && ((y) > camHeight) && ((y) < 2 * camHeight))
@@ -238,5 +245,10 @@ void testApp::touchUp(int x, int y, int id){
 
 //--------------------------------------------------------------
 void testApp::touchDoubleTap(int x, int y, int id){
-
+	if(viewMode == MODE_FULLSCREEN) {
+		viewMode = MODE_EDIT;
+	} else if(WITHINAPPLYREGION(x, y)) {
+		viewMode = MODE_FULLSCREEN;
+		startCoord[0] = -1;
+	}
 }
