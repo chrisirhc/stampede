@@ -148,8 +148,8 @@ void testApp::touchDown(int x, int y, int id){
 	if(WITHINSAMPLEREGION(x, y)) {
 		// Within the sampling region
 
-		startCoord[0] = x;
-		startCoord[1] = y - camHeight;
+		startCoord[0] = ofClamp(x, 0, camWidth - brushSize);
+		startCoord[1] = ofClamp(y - camHeight, 0, camHeight - brushSize);
 	} else if (WITHINAPPLYREGION(x, y)) {
 		// Within the applying region
 
@@ -196,8 +196,8 @@ void testApp::touchMoved(int x, int y, int id){
 	if(WITHINSAMPLEREGION(x, y)) {
 		// Within the sampling region
 
-		startCoord[0] = x;
-		startCoord[1] = y - camHeight;
+		startCoord[0] = ofClamp(x, 0, camWidth - brushSize);
+		startCoord[1] = ofClamp(y - camHeight, 0, camHeight - brushSize);
 	} else if (WITHINAPPLYREGION(x, y)) {
 		x -= camWidth + 64;
 		y -= camHeight;
