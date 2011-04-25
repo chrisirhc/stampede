@@ -86,24 +86,44 @@ void testApp::draw(){
   ofScale(1.0, 1.0, 1.0);
 	
 	ofSetColor(0xFFFFFF);
-	tex.draw(0, 0);
-	grabber.draw(camWidth, camHeight);
+	tex.draw(camWidth + 64, camHeight);
+	grabber.draw(0, camHeight);
 
-	previewTex.draw(camWidth / 2, 1.5 * camHeight);
+	previewTex.draw(camWidth / 2, 0.5 * camHeight);
 	
-	// tex.draw(0, 0, tex.getWidth() / 4, tex.getHeight() / 4);
-	ofRect(startCoord[0] + camWidth, startCoord[1] + camHeight, 50, 50);
+	// If it's not in the eraser mode, then draw a nice rectangle of the sampling area
+	if (startCoord[0] != -1) {
+		ofEnableAlphaBlending();
+		ofNoFill();
+		ofSetColor(255, 255, 255, 100);
+		ofRect(startCoord[0], startCoord[1] + camHeight, 50, 50);
+		ofSetColor(0, 0, 0, 100);
+		ofRect(startCoord[0] - 1, startCoord[1] + camHeight - 1, 52, 52);
+		ofDisableAlphaBlending();
+	}
 }
+
+#define WITHINSAMPLEREGION(x, y) (((x) < camWidth) && ((y) > camHeight))
+#define WITHINAPPLYREGION(x, y) (((x) > camWidth + 64) && ((y) > camHeight))
+// #define CONVERT_FROM_APPLY(x, y) (
 
 //--------------------------------------------------------------
 void testApp::touchDown(int x, int y, int id){
 	fingerOrder.push_back(id);
-	firstX[id] = x;
-	firstY[id] = y;
-	if(fingerOrder.front() == id) {
-		startCoord[0] = x - camWidth;
+	if(WITHINSAMPLEREGION(x, y)) {
+		// Within the sampling region
+
+		startCoord[0] = x;
 		startCoord[1] = y - camHeight;
-	} else {
+	} else if (WITHINAPPLYREGION(x, y)) {
+		// Within the applying region
+
+		// Convert them back
+		x -= camWidth + 64;
+		y -= camHeight;
+		firstX[id] = x;
+		firstY[id] = y;
+
 		for(int i = 0; i < brushSize; i++) {
 			for(int j = 0; j < brushSize; j++) {
 				if (((j + startCoord[0]) >= 0) &&
@@ -122,10 +142,15 @@ void testApp::touchDown(int x, int y, int id){
 //--------------------------------------------------------------
 void testApp::touchMoved(int x, int y, int id){
 	int fx = firstX[id], fy = firstY[id];
-	if(fingerOrder.front() == id) {
-		startCoord[0] = x - camWidth;
+	if(WITHINSAMPLEREGION(x, y)) {
+		// Within the sampling region
+
+		startCoord[0] = x;
 		startCoord[1] = y - camHeight;
-	} else {
+	} else if (WITHINAPPLYREGION(x, y)) {
+		x -= camWidth + 64;
+		y -= camHeight;
+
 		for(int i = 0; i < brushSize; i++) {
 			for(int j = 0; j < brushSize; j++) {
 				if (((x - fx + j + startCoord[0]) >= 0) &&
