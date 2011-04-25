@@ -11,6 +11,9 @@ void testApp::setup(){
 
 	brushSize = 50;
 
+	// Set the currentSamplingFrame to the latest frame available (starts from 0)
+	currentSamplingFrame = NUM_FRAMES - 1;
+
 	// register touch events
 	// ofRegisterTouchEvents(this);
   ofxRegisterMultitouch(this);
@@ -18,6 +21,10 @@ void testApp::setup(){
 	grabber.initGrabber(camWidth, camHeight);
 	// TODO not sure why this gets set of widths and heights
 	tex.allocate(grabber.getWidth(), grabber.getHeight(), GL_RGB);
+	for (int i = 0; i < NUM_FRAMES; i++) {
+		frameTex[i].allocate(grabber.getWidth(), grabber.getHeight(), GL_RGB);
+		frameOrder.push_back(i);
+	}
 	previewTex.allocate(brushSize, brushSize, GL_RGB);
 	
 	pix = new unsigned char[ (int)( grabber.getWidth() * grabber.getHeight() * 3.0)];
@@ -79,6 +86,11 @@ void testApp::update(){
 	}
 
 	tex.loadData(pix, grabber.getWidth(), grabber.getHeight(), GL_RGB);
+
+	// Load the src data to the first frame that pop and push to back of the queue
+	frameTex[frameOrder[0]].loadData(src, grabber.getWidth(), grabber.getHeight(), GL_RGB);
+	frameOrder.push_back(frameOrder[0]);
+	frameOrder.pop_front();
 }
 
 //--------------------------------------------------------------
@@ -86,8 +98,10 @@ void testApp::draw(){
   ofScale(1.0, 1.0, 1.0);
 	
 	ofSetColor(0xFFFFFF);
+	// Live camera with applied effect
 	tex.draw(camWidth + 64, camHeight);
-	grabber.draw(0, camHeight);
+	// Sampling frame
+	frameTex[frameOrder[currentSamplingFrame]].draw(0, camHeight);
 
 	previewTex.draw(camWidth / 2, 0.5 * camHeight);
 	

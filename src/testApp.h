@@ -7,6 +7,9 @@
 #include "ofxiPhoneVideoGrabber.h"
 #include <map>
 #include <list>
+#include <deque>
+
+#define NUM_FRAMES 50
 
 class testApp : public ofxiPhoneApp{
 	
@@ -37,4 +40,8 @@ class testApp : public ofxiPhoneApp{
 		std::list<int> fingerOrder;
 
 		int brushSize;
+
+		int currentSamplingFrame;
+		std::deque<int> frameOrder;
+		ofTexture frameTex[NUM_FRAMES];
 };
