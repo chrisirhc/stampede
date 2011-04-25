@@ -27,6 +27,7 @@ class testApp : public ofxiPhoneApp{
 		ofxiPhoneVideoGrabber grabber;
 		ofTexture tex;
 		ofTexture previewTex;
+		ofTexture sampTex;
 		unsigned char * pix;
 		unsigned char * prevPix;
 
@@ -42,8 +43,8 @@ class testApp : public ofxiPhoneApp{
 		int brushSize;
 
 		int currentSamplingFrame;
-		std::deque<int> frameOrder;
-		ofImage frameTex[NUM_FRAMES];
+		std::deque<unsigned char*> frameOrder;
+		unsigned char * frameTex[NUM_FRAMES];
 
 		GLfloat timelineVertices[NUM_FRAMES * 2][2];
 };
