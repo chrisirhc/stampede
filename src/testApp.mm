@@ -21,9 +21,10 @@ void testApp::setup(){
 	grabber.initGrabber(camWidth, camHeight);
 	// TODO not sure why this gets set of widths and heights
 	tex.allocate(grabber.getWidth(), grabber.getHeight(), GL_RGB);
+	sampTex.allocate(grabber.getWidth(), grabber.getHeight(), GL_RGB);
 	for (int i = 0; i < NUM_FRAMES; i++) {
-		frameTex[i].allocate(grabber.getWidth(), grabber.getHeight(), OF_IMAGE_COLOR);
-		frameOrder.push_back(i);
+		frameTex[i] = new unsigned char[ (int)( grabber.getWidth() * grabber.getHeight() * 3.0)];
+		frameOrder.push_back(frameTex[i]);
 	}
 	previewTex.allocate(brushSize, brushSize, GL_RGB);
 	
@@ -72,9 +73,9 @@ void testApp::update(){
 		for(int j = 0; j < brushSize; j++, k+=3) {
 			if (((startCoord[0] + i) < camWidth) && ((startCoord[1] + j) < camHeight)) {
 				currentIndex = 3*((startCoord[1]+i)*camWidth + startCoord[0]+j);
-				prevPix[k]   = frameTex[frameOrder[currentSamplingFrame]].getPixels()[currentIndex];
-				prevPix[k+1] = frameTex[frameOrder[currentSamplingFrame]].getPixels()[currentIndex+1];
-				prevPix[k+2] = frameTex[frameOrder[currentSamplingFrame]].getPixels()[currentIndex+2];
+				prevPix[k]   = frameOrder[currentSamplingFrame][currentIndex];
+				prevPix[k+1] = frameOrder[currentSamplingFrame][currentIndex+1];
+				prevPix[k+2] = frameOrder[currentSamplingFrame][currentIndex+2];
 			}
 		}
 	}
@@ -87,15 +88,17 @@ void testApp::update(){
 	for (int i = 0, j = 0; i < coordinates; i+=3, j+=3) {
 		// TODO Check later and optimize
 		currentIndex = 3*(videoCoordinates[i]*camWidth + videoCoordinates[i+1]);
-		pix[j]   = frameTex[frameOrder[videoCoordinates[i+2]]].getPixels()[currentIndex];
-		pix[j+1] = frameTex[frameOrder[videoCoordinates[i+2]]].getPixels()[currentIndex+1];
-		pix[j+2] = frameTex[frameOrder[videoCoordinates[i+2]]].getPixels()[currentIndex+2];
+		pix[j]   = frameOrder[videoCoordinates[i+2]][currentIndex];
+		pix[j+1] = frameOrder[videoCoordinates[i+2]][currentIndex+1];
+		pix[j+2] = frameOrder[videoCoordinates[i+2]][currentIndex+2];
 	}
 
 	tex.loadData(pix, grabber.getWidth(), grabber.getHeight(), GL_RGB);
 
+	sampTex.loadData(frameOrder[currentSamplingFrame], grabber.getWidth(), grabber.getHeight(), GL_RGB);
+
 	// Load the src data to the first frame that pop and push to back of the queue
-	frameTex[frameOrder[0]].setFromPixels(src, grabber.getWidth(), grabber.getHeight(), OF_IMAGE_COLOR, true);
+	memcpy(frameOrder[0], src, grabber.getWidth()*grabber.getHeight()*3);
 	frameOrder.push_back(frameOrder[0]);
 	frameOrder.pop_front();
 }
@@ -108,7 +111,7 @@ void testApp::draw(){
 	// Live camera with applied effect
 	tex.draw(camWidth + 64, camHeight);
 	// Sampling frame
-	frameTex[frameOrder[currentSamplingFrame]].draw(0, camHeight);
+	sampTex.draw(0, camHeight);
 
 	previewTex.draw(camWidth / 2 - 50/2, 0.5 * camHeight - 50/2);
 	
