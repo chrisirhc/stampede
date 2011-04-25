@@ -93,12 +93,12 @@ void testApp::update(){
 
 	tex.loadData(pix, grabber.getWidth(), grabber.getHeight(), GL_RGB);
 
-	sampTex.loadData(frameOrder[currentSamplingFrame], grabber.getWidth(), grabber.getHeight(), GL_RGB);
-
 	// Load the src data to the first frame that pop and push to back of the queue
 	memcpy(frameOrder[0], src, grabber.getWidth()*grabber.getHeight()*3);
 	frameOrder.push_back(frameOrder[0]);
 	frameOrder.pop_front();
+
+	sampTex.loadData(frameOrder[currentSamplingFrame], grabber.getWidth(), grabber.getHeight(), GL_RGB);
 }
 
 //--------------------------------------------------------------
