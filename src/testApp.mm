@@ -22,7 +22,7 @@ void testApp::setup(){
 	// TODO not sure why this gets set of widths and heights
 	tex.allocate(grabber.getWidth(), grabber.getHeight(), GL_RGB);
 	for (int i = 0; i < NUM_FRAMES; i++) {
-		frameTex[i].allocate(grabber.getWidth(), grabber.getHeight(), GL_RGB);
+		frameTex[i].allocate(grabber.getWidth(), grabber.getHeight(), OF_IMAGE_COLOR);
 		frameOrder.push_back(i);
 	}
 	previewTex.allocate(brushSize, brushSize, GL_RGB);
@@ -30,15 +30,17 @@ void testApp::setup(){
 	pix = new unsigned char[ (int)( grabber.getWidth() * grabber.getHeight() * 3.0)];
 	prevPix = new unsigned char[ (int)( brushSize * brushSize * 3.0)];
 
-	videoCoordinates = new int[camWidth*camHeight*2];
+	videoCoordinates = new int[camWidth*camHeight*3];
 	int i = 0;
 	for (int x = 0; x < camHeight; x++) {
 		for (int y = 0; y < camWidth; y++) {
 			videoCoordinates[i++] = x;
 			videoCoordinates[i++] = y;
+			videoCoordinates[i++] = NUM_FRAMES - 1;
 		}
 	}
 
+	// Starting sampling coordinates might want to make this -1
 	startCoord[0] = 0;
 	startCoord[1] = 0;
 
@@ -59,25 +61,20 @@ void testApp::update(){
 	
 	unsigned char * src = grabber.getPixels();
 	
+	// TODO replace this with constants ?
 	int totalPix = grabber.getWidth() * grabber.getHeight() * 3;
 	
-/*
-	for(int k = 0; k < totalPix; k+= 3){
-		pix[k  ] = 255 - src[k];
-		pix[k+1] = 255 - src[k+1];
-		pix[k+2] = 255 - src[k+2];		
-	}
-*/
 	int currentIndex;
 
+	// TODO this preview should be based on the currentSamplingFrame variable
 	/** Generate preview texture for sampling area **/
 	for(int i = 0, k = 0; i < brushSize; i++) {
 		for(int j = 0; j < brushSize; j++, k+=3) {
 			if (((startCoord[0] + i) < camWidth) && ((startCoord[1] + j) < camHeight)) {
 				currentIndex = 3*((startCoord[1]+i)*camWidth + startCoord[0]+j);
-				prevPix[k]   = src[currentIndex];
-				prevPix[k+1] = src[currentIndex+1];
-				prevPix[k+2] = src[currentIndex+2];
+				prevPix[k]   = frameTex[frameOrder[currentSamplingFrame]].getPixels()[currentIndex];
+				prevPix[k+1] = frameTex[frameOrder[currentSamplingFrame]].getPixels()[currentIndex+1];
+				prevPix[k+2] = frameTex[frameOrder[currentSamplingFrame]].getPixels()[currentIndex+2];
 			}
 		}
 	}
@@ -86,19 +83,19 @@ void testApp::update(){
 	previewTex.loadData(prevPix, brushSize, brushSize, GL_RGB);
 
 	int totalPixels = camWidth*camHeight*3;
-	int coordinates = camWidth*camHeight*2;
-	for (int i = 0, j = 0; i < coordinates; i+=2, j+=3) {
+	int coordinates = camWidth*camHeight*3;
+	for (int i = 0, j = 0; i < coordinates; i+=3, j+=3) {
 		// TODO Check later and optimize
 		currentIndex = 3*(videoCoordinates[i]*camWidth + videoCoordinates[i+1]);
-		pix[j]   = src[currentIndex];
-		pix[j+1] = src[currentIndex+1];
-		pix[j+2] = src[currentIndex+2];
+		pix[j]   = frameTex[frameOrder[videoCoordinates[i+2]]].getPixels()[currentIndex];
+		pix[j+1] = frameTex[frameOrder[videoCoordinates[i+2]]].getPixels()[currentIndex+1];
+		pix[j+2] = frameTex[frameOrder[videoCoordinates[i+2]]].getPixels()[currentIndex+2];
 	}
 
 	tex.loadData(pix, grabber.getWidth(), grabber.getHeight(), GL_RGB);
 
 	// Load the src data to the first frame that pop and push to back of the queue
-	frameTex[frameOrder[0]].loadData(src, grabber.getWidth(), grabber.getHeight(), GL_RGB);
+	frameTex[frameOrder[0]].setFromPixels(src, grabber.getWidth(), grabber.getHeight(), OF_IMAGE_COLOR, true);
 	frameOrder.push_back(frameOrder[0]);
 	frameOrder.pop_front();
 }
@@ -113,7 +110,7 @@ void testApp::draw(){
 	// Sampling frame
 	frameTex[frameOrder[currentSamplingFrame]].draw(0, camHeight);
 
-	previewTex.draw(camWidth / 2, 0.5 * camHeight);
+	previewTex.draw(camWidth / 2 - 50/2, 0.5 * camHeight - 50/2);
 	
 	// If it's not in the eraser mode, then draw a nice rectangle of the sampling area
 	if (startCoord[0] != -1) {
@@ -163,10 +160,12 @@ void testApp::touchDown(int x, int y, int id){
 
 		int startX = startCoord[0];
 		int startY = startCoord[1];
+		int samplingFrame = currentSamplingFrame;
 
 		if (startX == -1) {
 			startX = x;
 			startY = y;
+			samplingFrame = NUM_FRAMES - 1;
 		}
 
 		for(int i = 0; i < brushSize; i++) {
@@ -176,8 +175,9 @@ void testApp::touchDown(int x, int y, int id){
 						((x + j) < camWidth) && ((y + i) < camHeight) &&
 						((j + startX) < camWidth) &&
 						((i + startY) < camHeight)) {
-					videoCoordinates[2*((y+i)*camWidth + (x+j))+1] = j + startX;
-					videoCoordinates[2*((y+i)*camWidth + (x+j))]   = i + startY;
+					videoCoordinates[3*((y+i)*camWidth + (x+j))+2] = samplingFrame;
+					videoCoordinates[3*((y+i)*camWidth + (x+j))+1] = j + startX;
+					videoCoordinates[3*((y+i)*camWidth + (x+j))]   = i + startY;
 				}
 			}
 		}
@@ -203,10 +203,12 @@ void testApp::touchMoved(int x, int y, int id){
 
 		int startX = startCoord[0];
 		int startY = startCoord[1];
+		int samplingFrame = currentSamplingFrame;
 
 		if (startX == -1) {
 			startX = fx;
 			startY = fy;
+			samplingFrame = NUM_FRAMES - 1;
 		}
 
 		for(int i = 0; i < brushSize; i++) {
@@ -216,8 +218,9 @@ void testApp::touchMoved(int x, int y, int id){
 						((x + j) < camWidth) && ((y + i) < camHeight) &&
 						((x + j - fx + startX) < camWidth) &&
 						((y + i - fy + startY) < camHeight)) {
-					videoCoordinates[2*((y+i)*camWidth + (x+j))+1] = x + j - fx + startX;
-					videoCoordinates[2*((y+i)*camWidth + (x+j))]   = y + i - fy + startY;
+					videoCoordinates[3*((y+i)*camWidth + (x+j))+2] = samplingFrame;
+					videoCoordinates[3*((y+i)*camWidth + (x+j))+1] = x + j - fx + startX;
+					videoCoordinates[3*((y+i)*camWidth + (x+j))]   = y + i - fy + startY;
 				}
 			}
 		}
