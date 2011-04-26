@@ -105,7 +105,12 @@ void testApp::draw(){
 	
 	ofSetColor(0xFFFFFF);
 
-	if (viewMode != MODE_FULLSCREEN) {
+	if (viewMode == MODE_FULLSCREEN) {
+		tex.draw(0, 0, 1024, 768);
+		return;
+	}
+	// If it's not in fullscreen mode
+
 	// Live camera with applied effect
 	tex.draw(camWidth + 64, camHeight);
 	// Sampling frame
@@ -131,6 +136,7 @@ void testApp::draw(){
 	ofLine(x, camHeight, x, camHeight - 15);
 	ofSetColor(200, 200, 200);
 
+	// Draw dots for the timeline
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, 0, timelineVertices);
 	glDrawArrays(GL_POINTS, 0, NUM_FRAMES * 2);
@@ -140,9 +146,6 @@ void testApp::draw(){
 	// Hard coded region
 	uiBar.draw(camWidth + 64, camHeight-60);
 
-	} else {
-		tex.draw(0, 0, 1024, 768);
-	}
 }
 
 #define WITHINSAMPLEREGION(x, y) (((x) < camWidth) && ((y) > camHeight) && ((y) < 2 * camHeight))
