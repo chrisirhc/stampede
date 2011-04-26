@@ -155,6 +155,9 @@ void testApp::draw(){
 //--------------------------------------------------------------
 void testApp::touchDown(int x, int y, int id){
 	fingerOrder.push_back(id);
+	if (viewMode == MODE_FULLSCREEN) {
+		return;
+	}
 	if(WITHINSAMPLEREGION(x, y)) {
 		// Within the sampling region
 
@@ -206,6 +209,9 @@ void testApp::touchDown(int x, int y, int id){
 
 //--------------------------------------------------------------
 void testApp::touchMoved(int x, int y, int id){
+	if (viewMode == MODE_FULLSCREEN) {
+		return;
+	}
 	int fx = firstX[id], fy = firstY[id];
 	if(WITHINSAMPLEREGION(x, y)) {
 		// Within the sampling region
@@ -250,6 +256,8 @@ void testApp::touchUp(int x, int y, int id){
 
 //--------------------------------------------------------------
 void testApp::touchDoubleTap(int x, int y, int id){
+	// TODO add a notification somewhere
+	// Double-tap to exit full screen
 	if(viewMode == MODE_FULLSCREEN) {
 		viewMode = MODE_EDIT;
 	}
