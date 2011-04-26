@@ -176,7 +176,6 @@ void testApp::touchDown(int x, int y, int id){
 		if (startX == -1) {
 			startX = x;
 			startY = y;
-			samplingFrame = NUM_FRAMES - 1;
 		}
 
 		for(int i = 0; i < brushSize; i++) {
@@ -224,7 +223,6 @@ void testApp::touchMoved(int x, int y, int id){
 		if (startX == -1) {
 			startX = fx;
 			startY = fy;
-			samplingFrame = NUM_FRAMES - 1;
 		}
 
 		for(int i = 0; i < brushSize; i++) {
