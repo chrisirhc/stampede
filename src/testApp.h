@@ -51,4 +51,8 @@ class testApp : public ofxiPhoneApp{
 		GLfloat timelineVertices[NUM_FRAMES * 2][2];
 
 		int viewMode;
+
+		ofImage uiBar;
+
+		void clearVideoCoords();
 };

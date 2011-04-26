@@ -34,14 +34,7 @@ void testApp::setup(){
 	prevPix = new unsigned char[ (int)( brushSize * brushSize * 3.0)];
 
 	videoCoordinates = new int[camWidth*camHeight*3];
-	int i = 0;
-	for (int x = 0; x < camHeight; x++) {
-		for (int y = 0; y < camWidth; y++) {
-			videoCoordinates[i++] = x;
-			videoCoordinates[i++] = y;
-			videoCoordinates[i++] = NUM_FRAMES - 1;
-		}
-	}
+	clearVideoCoords();
 
 	// Starting sampling coordinates might want to make this -1
 	startCoord[0] = 0;
@@ -56,6 +49,8 @@ void testApp::setup(){
 		timelineVertices[NUM_FRAMES + i][1] = camHeight - 7;
 	}
 	glPointSize(1.0f);
+
+	uiBar.loadImage("images/ui-bar.gif");
 }
 
 //--------------------------------------------------------------
@@ -140,6 +135,11 @@ void testApp::draw(){
 	glVertexPointer(2, GL_FLOAT, 0, timelineVertices);
 	glDrawArrays(GL_POINTS, 0, NUM_FRAMES * 2);
 	glDisableClientState(GL_VERTEX_ARRAY);
+
+	// Draw the UI bar
+	// Hard coded region
+	uiBar.draw(camWidth + 64, camHeight-60);
+
 	} else {
 		tex.draw(0, 0, 1024, 768);
 	}
@@ -148,6 +148,8 @@ void testApp::draw(){
 #define WITHINSAMPLEREGION(x, y) (((x) < camWidth) && ((y) > camHeight) && ((y) < 2 * camHeight))
 #define WITHINFRAMESELECTREGION(x, y) (((x) < camWidth) && ((y) > 2 * camHeight))
 #define WITHINAPPLYREGION(x, y) (((x) > camWidth + 64) && ((y) > camHeight))
+#define WITHINBUTTON_FULLSCREEN(x, y) (((x) > camWidth + 64) && ((y) > camHeight - 60) && ((x) < camWidth + 64 + 60) && ((y) < camHeight))
+#define WITHINBUTTON_CLEAR(x, y) (((x) > camWidth + 346) && ((y) > camHeight - 60) && ((x) < 2 * camWidth + 64 + 60) && ((y) < camHeight))
 // #define CONVERT_FROM_APPLY(x, y) (
 
 //--------------------------------------------------------------
@@ -192,6 +194,11 @@ void testApp::touchDown(int x, int y, int id){
 		}
 	} else if (WITHINFRAMESELECTREGION(x, y)) {
 		currentSamplingFrame = (int) ofMap(x, 0, camWidth, 0, NUM_FRAMES);
+	} else if (WITHINBUTTON_FULLSCREEN(x, y)) {
+		viewMode = MODE_FULLSCREEN;
+		startCoord[0] = -1;
+	} else if (WITHINBUTTON_CLEAR(x, y)) {
+		clearVideoCoords();
 	} else if (fingerOrder.front() == id) {
 		// For the eraser option
 		startCoord[0] = -1;
@@ -247,8 +254,16 @@ void testApp::touchUp(int x, int y, int id){
 void testApp::touchDoubleTap(int x, int y, int id){
 	if(viewMode == MODE_FULLSCREEN) {
 		viewMode = MODE_EDIT;
-	} else if(WITHINAPPLYREGION(x, y)) {
-		viewMode = MODE_FULLSCREEN;
-		startCoord[0] = -1;
+	}
+}
+
+void testApp::clearVideoCoords() {
+	int i = 0;
+	for (int x = 0; x < camHeight; x++) {
+		for (int y = 0; y < camWidth; y++) {
+			videoCoordinates[i++] = x;
+			videoCoordinates[i++] = y;
+			videoCoordinates[i++] = NUM_FRAMES - 1;
+		}
 	}
 }
