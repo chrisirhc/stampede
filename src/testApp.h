@@ -53,6 +53,7 @@ class testApp : public ofxiPhoneApp{
 		int viewMode;
 
 		ofImage uiBar;
+		ofImage topRightText;
 
 		void clearVideoCoords();
 };

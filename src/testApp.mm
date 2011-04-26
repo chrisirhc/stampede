@@ -51,6 +51,7 @@ void testApp::setup(){
 	glPointSize(1.0f);
 
 	uiBar.loadImage("images/ui-bar.gif");
+	topRightText.loadImage("images/toprighttext.gif");
 }
 
 //--------------------------------------------------------------
@@ -145,6 +146,7 @@ void testApp::draw(){
 	// Draw the UI bar
 	// Hard coded region
 	uiBar.draw(camWidth + 64, camHeight-60);
+	topRightText.draw(camWidth + 130, 0);
 
 }
 
